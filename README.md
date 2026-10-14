@@ -14,6 +14,8 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 | `decompose` | Turns an approved spec into vertical-slice phases in `task_plan.md`. |
 | `implement-plan` | Runs every phase unattended: a Sonnet build agent does RED-GREEN-REFACTOR per slice, then three parallel reviewers (correctness, architecture, security) check the result. Optional Figma visual comparison. |
 | `resume-plan` | Lists plans in the root folder and reloads one into the session. |
+| `plan-status` | Read-only "where am I?" view of the plan for the current repo, or any plan by name. |
+| `audit-plans` | Checks open plans against GitHub, marks the ones whose PRs merged to main as completed (with your confirmation), writes delivery notes, and archives them. |
 | `setup` | One-time setup: picks your root folder, saves it to settings, installs the required plugins, and reports optional MCP servers. |
 
 ## Install
@@ -83,6 +85,7 @@ So you can run plans in different repos in parallel, or in one repo using `imple
 
 - `implement-plan` keeps a Mac awake with `caffeinate` during a run. Elsewhere it skips that step.
 - Hook scripts need a POSIX shell, `git`, `sed` and `grep`.
+- `audit-plans` uses the GitHub CLI (`gh`) to verify merged PRs. Without it, it falls back to `git log`.
 
 ## License
 

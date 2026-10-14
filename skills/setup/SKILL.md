@@ -81,14 +81,15 @@ Everything works without them; each skill skips what is missing.
 
 1. Confirm the root is writable: `touch "$ROOT/plans/.spec-workflow-check" && rm "$ROOT/plans/.spec-workflow-check"`.
 2. Confirm `git` is installed (`git --version`).
-3. Present:
+3. Check the GitHub CLI with `gh auth status`. It is optional: only `/spec-workflow:audit-plans` uses it to verify merged PRs. If it is missing or logged out, say so and continue.
+4. Present:
 
 ```
 spec-workflow is set up.
 
 Plan root:   {path}  (saved to {SETTINGS})
 Plugins:     planning-with-files {✓|missing}, ralph-loop {✓|missing}
-Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, plan RAG {✓|–}
+Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, plan RAG {✓|–}, gh {✓|–}
 
 Next: restart Claude Code so hooks see SPEC_WORKFLOW_ROOT, then run
 /spec-workflow:spec <plan-name> from inside the repo you want to work on.
