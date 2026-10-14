@@ -89,11 +89,11 @@ Defaults: max 2 quality iterations per artifact, score each rubric axis 0-2, req
 
 **Load planning-with-files templates once** at the start of Step 8, before any research:
 
-```
-~/.claude/plugins/cache/planning-with-files/**/skills/planning-with-files/templates/*.md
+```bash
+ls -t ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/*/planning-with-files/*/skills/planning-with-files/templates/*.md
 ```
 
-Read the `findings.md` template. Strip HTML comments (`<!-- ... -->`). If the glob matches zero files, use the section headings described in Step 8e as a fallback structure.
+Read the `findings.md` template — if several cached versions match, use the first (newest) copy of each. Strip HTML comments (`<!-- ... -->`). If the glob matches zero files, use the section headings described in Step 8e as a fallback structure.
 
 ---
 
@@ -101,7 +101,9 @@ Read the `findings.md` template. Strip HTML comments (`<!-- ... -->`). If the gl
 
 Plans are independent — several can be open at once, even in the same repo. Never pause or modify another plan.
 
-If `$ARGUMENTS` is empty and the current repo already has open plans (`spec.md` or `task_plan.md` with matching `repo:` and `status` other than `completed`), ask with AskUserQuestion: "This repo has open plans: **{names}**. Start a new spec, or resume one of them?" If they choose to resume, invoke `Skill("spec-workflow:resume-plan")` with that plan's slug and stop. Otherwise continue to Step 2.
+A plan is **open** when it has no `task_plan.md` yet (spec stage), or its `task_plan.md` `status` is not `completed`. `spec.md` status never means finished.
+
+If `$ARGUMENTS` is empty and the current repo already has open plans (matching `repo:` or `workspace:` in `spec.md` or `task_plan.md`), ask with AskUserQuestion: "This repo has open plans: **{names}**. Start a new spec, or continue one of them?" If they choose to continue one, follow **Continuing an Existing Plan** (Step 5) for it and stop. Otherwise continue to Step 2.
 
 ---
 
@@ -141,8 +143,13 @@ Lowercase the plan name, replace spaces/underscores with hyphens, remove special
 ## Step 5: Check if Plan Folder Already Exists
 
 If `${PLANS_DIR}/{slug}/` exists:
-- If `spec.md` exists inside: enter **update mode** — "A spec already exists for this plan. Re-research and update it, or resume from where you left off?" Re-research → continue to Step 7 (will overwrite spec.md + findings.md). Resume → invoke `Skill("spec-workflow:resume-plan")` and stop.
+- If `spec.md` exists inside: enter **update mode** — "A spec already exists for this plan. Re-research and update it, or resume from where you left off?" Re-research → continue to Step 7 (will overwrite spec.md + findings.md). Resume → follow **Continuing an Existing Plan** below.
 - If no spec.md: ask "A plan folder exists but has no spec. Continue creating the spec here?"
+
+**Continuing an Existing Plan** — pick the next step from the plan's stage:
+- `task_plan.md` exists → invoke `Skill("spec-workflow:resume-plan")` with the plan's slug and stop.
+- `spec.md` is `status: draft` → set `{PLAN_DIR}` to that folder, read `spec.md` and `findings.md`, and continue at Step 9c (open questions), then Step 10.
+- `spec.md` is `status: approved` → stop with: "This spec is approved. Run `/spec-workflow:decompose --plan {slug}` to break it into phases."
 
 ---
 

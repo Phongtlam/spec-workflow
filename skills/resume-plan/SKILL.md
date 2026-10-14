@@ -45,6 +45,8 @@ At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 
 1. **Check if a plan name was provided.** If `$ARGUMENTS` is provided, try to match it (case-insensitive, partial match OK) to an existing plan folder slug under the plans folder. If exactly one match, skip to step 4 with that plan. If multiple matches, show them and ask user to pick.
 
+   If the chosen folder has no `task_plan.md`, the plan is still at the spec stage and cannot be resumed here. Stop with: "**{plan}** has a spec but no task plan yet." plus the next step: `/spec-workflow:spec {slug}` if `spec.md` is `status: draft`, or `/spec-workflow:decompose --plan {slug}` if it is `status: approved`.
+
 2. **Find all plans.** Use Glob to find all `task_plan.md` files matching `${PLANS_DIR}/*/task_plan.md`. If none exist, tell the user "No plans found. Use /spec-workflow:spec to create one." and stop.
 
 3. **Present plans for selection.** For each plan folder found, read the first 15 lines of task_plan.md to extract:

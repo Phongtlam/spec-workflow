@@ -38,7 +38,9 @@ Use retrieved context to improve decomposition shape, sequencing, risk handling,
 Plans are independent: several can be open at once, in the same repo or different ones. There is no global active-plan pointer — never write one.
 
 1. If `--plan <name>` was given, glob `${PLANS_DIR}/*/` and match the slug (case-insensitive, partial match OK).
-2. Otherwise, get the current repo (`git rev-parse --show-toplevel`, else the working directory) and find plans whose `spec.md` frontmatter has `repo:` or `workspace:` equal to that path and a `status` other than `completed`.
+2. Otherwise, get the current repo (`git rev-parse --show-toplevel`, else the working directory) and find open plans whose `spec.md` frontmatter has `repo:` or `workspace:` equal to that path. Prefer plans with no `task_plan.md` yet; if exactly one plan has none, use it without asking.
+
+A plan is **open** when it has no `task_plan.md` yet (spec stage), or its `task_plan.md` `status` is not `completed`. `spec.md` status never means finished.
 3. One match → use it. Several → AskUserQuestion listing them (plan name, status, updated date). None → stop with: "No plan found for this repo. Run `/spec-workflow:spec <plan-name>` to create a spec first, or pass `--plan <name>`."
 
 Once resolved, `{PLAN_DIR}` is this plan for the rest of the session. Name the plan in summaries so parallel sessions stay distinguishable.
@@ -85,11 +87,11 @@ Defaults: max 2 quality iterations, score each rubric axis 0-2, require at least
 
 Load planning-with-files templates:
 
-```
-~/.claude/plugins/cache/planning-with-files/**/skills/planning-with-files/templates/*.md
+```bash
+ls -t ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/*/planning-with-files/*/skills/planning-with-files/templates/*.md
 ```
 
-Read `task_plan.md` and `progress.md` templates. Strip HTML comments (`<!-- ... -->`). If the glob matches zero files, use these fallback headings:
+Read `task_plan.md` and `progress.md` templates — if several cached versions match, use the first (newest) copy of each. Strip HTML comments (`<!-- ... -->`). If the glob matches zero files, use these fallback headings:
 - task_plan.md: frontmatter + `## Phases` with `### Phase N: {name}` sections
 - progress.md: frontmatter + `## Sessions` section
 

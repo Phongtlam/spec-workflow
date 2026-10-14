@@ -37,7 +37,7 @@ This skill uses the GitHub CLI. If `gh auth status` fails, tell the user to inst
 Categorize every plan into one of these buckets:
 - **already-audited**: `status: completed` AND `artifacts.md` exists → skip entirely
 - **needs-artifacts**: `status: completed` BUT no `artifacts.md` → needs PR lookup + artifacts file
-- **audit-candidate**: `status: active` or `status: paused` → needs full audit
+- **audit-candidate**: any other status (`active`, `paused`, `in_progress`, or missing) → needs full audit
 
 Several plans can be in progress at once, so there is no single active plan to skip. The audit protects in-progress work through evidence instead: a plan is only offered for completion when its PR is verified merged to the default branch, and every status change needs the user's confirmation. Plans still being built come back as `in progress` and are left untouched.
 

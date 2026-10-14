@@ -100,7 +100,7 @@ There is no global "active plan". A skill picks its plan in this order:
 2. otherwise, the open plan whose `repo:` (or `workspace:`, for worktrees) matches the git repo the session is in
 3. if more than one matches, it asks
 
-So you can run plans in different repos in parallel, or in one repo using `implement-plan`'s worktree option. The hooks that inject the current phase into each prompt use the same repo lookup.
+So you can run plans in different repos in parallel, or in one repo using `implement-plan`'s worktree option. When another open plan is already using a repo's main checkout, `implement-plan` recommends a worktree, since two plans sharing one checkout would switch branches under each other. The hooks that inject the current phase into each prompt use the same repo lookup.
 
 ## Platform notes
 

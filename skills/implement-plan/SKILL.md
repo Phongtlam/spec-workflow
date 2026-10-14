@@ -91,24 +91,25 @@ Parse `$ARGUMENTS` for flags:
 
 Remaining text = additional context for the Spec step.
 
-### 0.0. Keep the computer awake
-
-Run once, before anything else (macOS; skip silently if `caffeinate` is missing). Prevents display, idle, disk, and system sleep for the whole run. The 12h timeout is a safety net so it can never be left running forever.
-
-```bash
-if command -v caffeinate >/dev/null 2>&1; then
-  [ -f ~/.claude/implement-plan-caffeinate.pid ] && kill "$(cat ~/.claude/implement-plan-caffeinate.pid)" 2>/dev/null
-  nohup caffeinate -dims -t 43200 >/dev/null 2>&1 &
-  echo $! > ~/.claude/implement-plan-caffeinate.pid
-fi
-```
-
-Release it (see Step 7 → "Release wake lock") when the run ends — on success **or** on a hard-failure stop.
-
 ### 0a. Resolve the plan
 
 1. Resolve the plan per **Plan Resolution** above, matching on `task_plan.md`.
 2. **Read ALL plan files** — task_plan.md, findings.md, progress.md, and spec.md (if exists). Log brief summary.
+
+### 0a.1. Keep the computer awake
+
+Run once, right after the plan is resolved (macOS; skip silently if `caffeinate` is missing). Prevents display, idle, disk, and system sleep for the whole run. The 12h timeout is a safety net so it can never be left running forever. The PID file lives in the plan folder so parallel runs of different plans each hold and release only their own wake lock.
+
+```bash
+PID_FILE="{PLAN_DIR}/.caffeinate.pid"
+if command -v caffeinate >/dev/null 2>&1; then
+  [ -f "$PID_FILE" ] && kill "$(cat "$PID_FILE")" 2>/dev/null
+  nohup caffeinate -dims -t 43200 >/dev/null 2>&1 &
+  echo $! > "$PID_FILE"
+fi
+```
+
+Release it (see Step 7 → "Release wake lock") when the run ends — on success **or** on a hard-failure stop.
 
 ### 0b. Extract repo and configuration
 
@@ -130,7 +131,8 @@ Run `git -C {repo} branch --show-current`, detect the default branch (`git -C {r
 - **"Current branch ({branch})"** — commit directly in `{repo}` on `{branch}`. If `{branch}` is the default branch, say so in the option description.
 - **"New branch ({plan-slug})"** — check out a new branch in the same checkout (no worktree). Mark "(Recommended)" when on the default branch and the working tree is clean. If the working tree is dirty, note in the description that uncommitted changes will carry over to the new branch.
 - **"New worktree branch"** — create an isolated worktree. Mark "(Recommended)" when the working tree is dirty.
-- If progress.md logs a worktree for this plan from a prior session and that path still exists, add **"Reuse worktree ({path})"** as the first option, marked "(Recommended)" (overrides the other recommendations).
+- If task_plan.md has `workspace:` set, or progress.md logs a worktree for this plan from a prior session, and that path still exists, add **"Reuse worktree ({path})"** as the first option, marked "(Recommended)" (overrides the other recommendations).
+- **Parallel plans:** if another open plan (see Plan Resolution) has the same `repo:` and no `workspace:` of its own, it is using this checkout. Mark "New worktree branch" as "(Recommended)" instead of the branch options, and say why in its description: two plans sharing one checkout switch branches under each other. Reuse-worktree still wins when it applies.
 
 Branch name = plan slug for both new-branch options (never prefix with `codex/`).
 
@@ -365,7 +367,7 @@ rm -f impl-plan-screenshot-*.png
 Run after the final phase completes (or on any hard-failure stop), before the report. In all-phases mode do this only once, after the last phase.
 
 ```bash
-[ -f ~/.claude/implement-plan-caffeinate.pid ] && kill "$(cat ~/.claude/implement-plan-caffeinate.pid)" 2>/dev/null; rm -f ~/.claude/implement-plan-caffeinate.pid
+PID_FILE="{PLAN_DIR}/.caffeinate.pid"; [ -f "$PID_FILE" ] && kill "$(cat "$PID_FILE")" 2>/dev/null; rm -f "$PID_FILE"
 ```
 
 ### Optional metric autoresearch mode
