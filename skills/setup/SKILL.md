@@ -71,8 +71,16 @@ Skip this step when another spec-workflow skill invoked setup only to resolve a 
    - `pr-review-toolkit:review-pr` (Recommended, the default)
    - `code-review:code-review`
    - the user can type any other installed skill name, or a comma-separated list
-3. Check each chosen skill is in this session's available skills. If `pr-review-toolkit:review-pr` is chosen and missing, add it to the Step 3 install offer (`claude plugin install pr-review-toolkit@claude-plugins-official`, marketplace `anthropics/claude-plugins-official`). If another chosen skill is missing, warn and ask whether to keep it anyway.
-4. If the choice is exactly the default, remove `SPEC_WORKFLOW_REVIEW_SKILL` from `SETTINGS` `env` if present (unset means default). Otherwise write `"SPEC_WORKFLOW_REVIEW_SKILL": "<value>"` into `env`, preserving every other key, same as Step 2.
+3. Check each chosen skill is in this session's available skills. Collect the missing ones that name a plugin (`<plugin>:<skill>`):
+   - `pr-review-toolkit:review-pr` → `claude plugin install pr-review-toolkit@claude-plugins-official`
+   - any other `<plugin>:<skill>` → `claude plugin install <plugin>`, which searches every added marketplace
+
+   Offer to install them now with one AskUserQuestion, using the same flow as Step 3: add `anthropics/claude-plugins-official` first if it is not in `claude plugin marketplace list`, then install. If an install reports the plugin is not found, say so and print the command; do not guess another marketplace.
+4. A missing skill without a plugin prefix is a personal skill the user must create. Warn and ask whether to keep it anyway.
+5. Check that the built-in `simplify` skill is in the available skills. If it is missing, say Claude Code is too old for `/spec-workflow:run-qa` and suggest updating it (`claude update`).
+6. If the choice is exactly the default, remove `SPEC_WORKFLOW_REVIEW_SKILL` from `SETTINGS` `env` if present (unset means default). Otherwise write `"SPEC_WORKFLOW_REVIEW_SKILL": "<value>"` into `env`, preserving every other key, same as Step 2.
+
+Newly installed plugins load after a restart, which the Step 6 summary already asks for.
 
 ## Step 4: Optional MCP Servers
 
@@ -111,6 +119,6 @@ Next: restart Claude Code so hooks see SPEC_WORKFLOW_ROOT, then run
 /spec-workflow:spec <plan-name> from inside the repo you want to work on.
 ```
 
-Skip the restart line if the root was already set in this session's environment before setup ran.
+Keep the restart line if setup saved a new setting or installed any plugin. Skip it only when nothing changed.
 
 When another spec-workflow skill invoked this one, end with the root path on its own line (`SPEC_WORKFLOW_ROOT={path}`) so the caller can continue with it in this session.

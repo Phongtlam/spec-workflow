@@ -1,6 +1,6 @@
 {
   "name": "spec-workflow",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Spec → decompose → implement workflow for Claude Code. Plans live in one root folder you choose; several can run in parallel.",
   "author": {
     "name": "Phong Lam"
