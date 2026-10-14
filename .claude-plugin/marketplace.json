@@ -10,7 +10,7 @@
     {
       "name": "spec-workflow",
       "source": "./",
-      "description": "Spec → decompose → implement workflow backed by an Obsidian vault"
+      "description": "Spec → decompose → implement workflow; plans live in a root folder you choose"
     }
   ]
 }

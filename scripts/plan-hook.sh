@@ -6,21 +6,21 @@
 # Usage: plan-hook.sh prompt|pre|post|post-slice|stop
 
 MODE="${1:-prompt}"
-VAULT="${OBSIDIAN_VAULT_PATH:-}"
-[ -n "$VAULT" ] && [ -d "$VAULT/plans" ] || exit 0
+PLAN_ROOT="${SPEC_WORKFLOW_ROOT:-}"
+[ -n "$PLAN_ROOT" ] && [ -d "$PLAN_ROOT/plans" ] || exit 0
 
-ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+REPO=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
 frontmatter() {
   sed -n '1{/^---$/!q;};2,/^---$/p' "$1"
 }
 
 MATCHES=""
-for f in "$VAULT"/plans/*/task_plan.md; do
+for f in "$PLAN_ROOT"/plans/*/task_plan.md; do
   [ -f "$f" ] || continue
   frontmatter "$f" | grep -qE '^status: *"?(completed|paused)' && continue
   if frontmatter "$f" | grep -E '^(repo|workspace):' \
-      | sed -E 's/^[a-z_]+: *//; s/^"//; s/"$//' | grep -qxF "$ROOT"; then
+      | sed -E 's/^[a-z_]+: *//; s/^"//; s/"$//' | grep -qxF "$REPO"; then
     MATCHES="${MATCHES}$(dirname "$f")
 "
   fi
@@ -32,7 +32,7 @@ COUNT=$(printf '%s' "$MATCHES" | grep -c .)
 if [ "$COUNT" -gt 1 ]; then
   case "$MODE" in
     prompt|stop)
-      echo "[spec-workflow] $COUNT open plans for $ROOT:"
+      echo "[spec-workflow] $COUNT open plans for $REPO:"
       printf '%s' "$MATCHES" | sed 's/^/  - /'
       echo "[spec-workflow] Stay on the plan this session is working on; update only its files."
       ;;

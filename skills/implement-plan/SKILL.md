@@ -1,6 +1,6 @@
 ---
 name: implement-plan
-description: Execute phases from an Obsidian vault plan. Delegates BUILD to a build agent (Sonnet), runs 3-axis parallel REVIEW, handles quality gates, visual comparison, and ralph-loop recovery. Requires /spec-workflow:spec + /spec-workflow:decompose to have been run first.
+description: Execute phases from a spec-workflow plan. Delegates BUILD to a build agent (Sonnet), runs 3-axis parallel REVIEW, handles quality gates, visual comparison, and ralph-loop recovery. Requires /spec-workflow:spec + /spec-workflow:decompose to have been run first.
 argument-hint: "[--plan <plan_name>] [--phase <phase_number>] [--figma <figma_url>] [--max-iterations <n>] [--max-quality-iterations <n>] [--quality-threshold <n>] [context...]"
 user-invocable: true
 allowed-tools: Write Edit Read Glob Grep Bash AskUserQuestion Skill Agent
@@ -22,15 +22,20 @@ hooks:
 
 # Implementation Plan — Execute Phases with Build Agent
 
-**Vault path:** `${VAULT_PATH}` (from the `OBSIDIAN_VAULT_PATH` environment variable — see Vault Resolution)
-**Plans folder:** `${PLANS_DIR}` (= `${VAULT_PATH}/plans`)
+**Plan root:** `${PLAN_ROOT}` (from the `SPEC_WORKFLOW_ROOT` environment variable — required, see Root Resolution)
+**Plans folder:** `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`)
 
 **Architecture**: Orchestrator delegates BUILD to the `spec-workflow:build-agent` subagent (Sonnet), runs 3-axis REVIEW with parallel agents, handles quality gates and recovery inline.
 
 
-## Vault Resolution
+## Root Resolution
 
-Resolve `VAULT_PATH` at the start of the skill by running `echo "$OBSIDIAN_VAULT_PATH"`. If it is empty, ask the user for the absolute path to their Obsidian vault with AskUserQuestion, verify the directory exists, and suggest they add `"OBSIDIAN_VAULT_PATH": "<path>"` to the `env` block of `~/.claude/settings.json` so they are not asked again. Never guess or hardcode a vault path. Derive `PLANS_DIR` (`${VAULT_PATH}/plans`) from `VAULT_PATH`.
+Every plan lives under one root folder, set by the `SPEC_WORKFLOW_ROOT` environment variable. Any directory works: a plain folder, a synced folder, or an Obsidian vault. Plans go in `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`).
+
+At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
+
+- **Set:** use it as `PLAN_ROOT`. If that directory does not exist, stop with: "`SPEC_WORKFLOW_ROOT` points to `{path}`, which does not exist. Create it, or fix the value in the `env` block of `~/.claude/settings.json`." Create `${PLANS_DIR}` if it is missing.
+- **Unset:** the root is required. Never fall back to a default, the working directory, or the repo. Ask with AskUserQuestion which folder to use, offering `~/spec-workflow` (Recommended) and noting they can enter any existing folder such as an Obsidian vault. The answer is the user's go-ahead to: expand it to an absolute path, create the folder and its `plans/` subfolder, and add `"SPEC_WORKFLOW_ROOT": "<absolute path>"` to the `env` block of `~/.claude/settings.json` (merge into the existing JSON and keep every other key). Use that path for the rest of this session, and tell the user to restart Claude Code so the plan hooks pick it up.
 
 ---
 
@@ -48,7 +53,7 @@ Once resolved, `{PLAN_DIR}` is this plan for the rest of the session. Name the p
 
 ## Plan File Protocol
 
-All plan files at absolute vault paths. NEVER write plan files to the repo.
+All plan files live at absolute paths under the plan root. NEVER write plan files to the repo.
 
 | File | When to READ | When to WRITE |
 |------|-------------|---------------|
@@ -62,7 +67,7 @@ All plan files at absolute vault paths. NEVER write plan files to the repo.
 If the `obsidian-plan-rag` MCP server is available, use it opportunistically at phase start. Prefer compact queries and never pass raw, large retrieval dumps to build agents.
 
 Default retrievals:
-- Call `refresh_index` or `index_status` when the plan or vault was just updated.
+- Call `refresh_index` or `index_status` when plan files were just updated.
 - Call `repo_memory` with the repo path/basename and phase topics to recover prior gotchas, testing patterns, blockers, and reusable implementation notes.
 - Call `similar_plans` with the phase goal and acceptance criteria when the work has a recognizable prior pattern.
 - Call `get_plan_context` only for a specific plan that appears highly relevant.

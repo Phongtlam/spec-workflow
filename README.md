@@ -1,6 +1,6 @@
 # spec-workflow
 
-A Claude Code plugin for spec-driven development. It researches and writes a spec, breaks it into phases, then builds each phase with a TDD subagent and parallel review. All plan files live in your Obsidian vault, not in the repo.
+A Claude Code plugin for spec-driven development. It researches and writes a spec, breaks it into phases, then builds each phase with a TDD subagent and parallel review. All plan files live in one root folder you choose, not in the repo.
 
 ```
 /spec-workflow:spec  →  /spec-workflow:decompose  →  /spec-workflow:implement-plan
@@ -13,7 +13,7 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 | `spec` | Gathers context (Jira, Figma, Confluence, codebase), writes `spec.md` + `findings.md`, walks you through open questions one at a time, and waits for your approval. |
 | `decompose` | Turns an approved spec into vertical-slice phases in `task_plan.md`. |
 | `implement-plan` | Runs every phase unattended: a Sonnet build agent does RED-GREEN-REFACTOR per slice, then three parallel reviewers (correctness, architecture, security) check the result. Optional Figma visual comparison. |
-| `resume-plan` | Lists plans in the vault and reloads one into the session. |
+| `resume-plan` | Lists plans in the root folder and reloads one into the session. |
 
 ## Install
 
@@ -32,19 +32,21 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 /plugin install ralph-loop@claude-plugins-official
 ```
 
-### Tell it where your vault is
+### Choose a root folder (required)
 
-Add your vault path to the `env` block of `~/.claude/settings.json`:
+Every plan lives under one folder you pick. Any directory works: `~/spec-workflow`, a synced Dropbox or iCloud folder, or an Obsidian vault if you want to browse plans there. Plans go in `$SPEC_WORKFLOW_ROOT/plans/<plan-slug>/`.
+
+Set it in the `env` block of `~/.claude/settings.json`:
 
 ```json
 {
   "env": {
-    "OBSIDIAN_VAULT_PATH": "/absolute/path/to/your/Obsidian Vault"
+    "SPEC_WORKFLOW_ROOT": "/absolute/path/to/your/folder"
   }
 }
 ```
 
-Plans go in `$OBSIDIAN_VAULT_PATH/plans/<plan-slug>/`. If the variable is unset the skills ask for the path, but the plan-context hooks stay silent, so set it.
+The skills won't run without it. If it's unset the first time you run one, the skill asks which folder to use, creates it, and adds it to `settings.json` for you. Restart Claude Code afterwards so the plan-context hooks see it.
 
 Use `settings.json` rather than your shell profile: the desktop app and IDE extensions don't read `.zshrc`.
 

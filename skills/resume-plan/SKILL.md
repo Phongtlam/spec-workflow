@@ -1,6 +1,6 @@
 ---
 name: resume-plan
-description: List all plans from the Obsidian vault and resume one. Loads full context from task_plan.md, findings.md, and progress.md, then activates planning hooks for the session.
+description: List all plans in the plan root folder and resume one. Loads full context from task_plan.md, findings.md, and progress.md, then activates planning hooks for the session.
 argument-hint: "[plan-name]"
 user-invocable: true
 allowed-tools: Write Edit Read Glob Grep Bash AskUserQuestion Skill
@@ -25,16 +25,21 @@ hooks:
           command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" stop; true"
 ---
 
-# Resume Plan — Load Existing Plan from Obsidian Vault
+# Resume Plan — Load Existing Plan from the Plan Root
 
-**Vault path:** `${VAULT_PATH}` (from the `OBSIDIAN_VAULT_PATH` environment variable — see Vault Resolution)
-**Plans folder:** `${PLANS_DIR}` (= `${VAULT_PATH}/plans`)
+**Plan root:** `${PLAN_ROOT}` (from the `SPEC_WORKFLOW_ROOT` environment variable — required, see Root Resolution)
+**Plans folder:** `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`)
 
-You are helping the user resume an existing plan from the Obsidian vault. This skill handles plan selection and context loading, then delegates to the `planning-with-files` plugin methodology for ongoing work.
+You are helping the user resume an existing plan from the plan root. This skill handles plan selection and context loading, then delegates to the `planning-with-files` plugin methodology for ongoing work.
 
-## Vault Resolution
+## Root Resolution
 
-Resolve `VAULT_PATH` at the start of the skill by running `echo "$OBSIDIAN_VAULT_PATH"`. If it is empty, ask the user for the absolute path to their Obsidian vault with AskUserQuestion, verify the directory exists, and suggest they add `"OBSIDIAN_VAULT_PATH": "<path>"` to the `env` block of `~/.claude/settings.json` so they are not asked again. Never guess or hardcode a vault path. Derive `PLANS_DIR` (`${VAULT_PATH}/plans`) from `VAULT_PATH`.
+Every plan lives under one root folder, set by the `SPEC_WORKFLOW_ROOT` environment variable. Any directory works: a plain folder, a synced folder, or an Obsidian vault. Plans go in `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`).
+
+At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
+
+- **Set:** use it as `PLAN_ROOT`. If that directory does not exist, stop with: "`SPEC_WORKFLOW_ROOT` points to `{path}`, which does not exist. Create it, or fix the value in the `env` block of `~/.claude/settings.json`." Create `${PLANS_DIR}` if it is missing.
+- **Unset:** the root is required. Never fall back to a default, the working directory, or the repo. Ask with AskUserQuestion which folder to use, offering `~/spec-workflow` (Recommended) and noting they can enter any existing folder such as an Obsidian vault. The answer is the user's go-ahead to: expand it to an absolute path, create the folder and its `plans/` subfolder, and add `"SPEC_WORKFLOW_ROOT": "<absolute path>"` to the `env` block of `~/.claude/settings.json` (merge into the existing JSON and keep every other key). Use that path for the rest of this session, and tell the user to restart Claude Code so the plan hooks pick it up.
 
 ## Steps
 
@@ -100,7 +105,7 @@ Resolve `VAULT_PATH` at the start of the skill by running `echo "$OBSIDIAN_VAULT
    ```
    Update the `updated` date in progress.md frontmatter.
 
-9. **Set the stage.** Ask the user: "What would you like to work on next?" and suggest the current phase's open tasks as starting points. From this point on, follow the `planning-with-files` plugin methodology for all planning work — write all files to the vault path using absolute paths.
+9. **Set the stage.** Ask the user: "What would you like to work on next?" and suggest the current phase's open tasks as starting points. From this point on, follow the `planning-with-files` plugin methodology for all planning work — write all files to the plan root using absolute paths.
 
 ## Guidelines
 
@@ -108,4 +113,4 @@ Resolve `VAULT_PATH` at the start of the skill by running `echo "$OBSIDIAN_VAULT
 - If a plan has `status: completed`, show it with a "[completed]" indicator in the picker. If the user selects a completed plan, confirm before resuming: "This plan is marked as completed. Resume it anyway?" If they decline, return to the picker.
 - When adding frontmatter to legacy plans, preserve all existing content below the frontmatter block.
 - Always update the `updated` frontmatter date when modifying plan files.
-- After resuming, the `planning-with-files` methodology applies (2-Action Rule, Read Before Decide, Update After Act, 3-Strike Protocol, etc.) — but files live in the vault, not CWD.
+- After resuming, the `planning-with-files` methodology applies (2-Action Rule, Read Before Decide, Update After Act, 3-Strike Protocol, etc.) — but files live in the plan root, not CWD.

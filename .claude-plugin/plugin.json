@@ -1,9 +1,17 @@
 {
   "name": "spec-workflow",
-  "version": "0.1.0",
-  "description": "Spec → decompose → implement workflow for Claude Code. Plans live in your Obsidian vault; several can run in parallel.",
-  "author": { "name": "Phong Lam" },
+  "version": "0.2.0",
+  "description": "Spec → decompose → implement workflow for Claude Code. Plans live in one root folder you choose; several can run in parallel.",
+  "author": {
+    "name": "Phong Lam"
+  },
   "repository": "https://github.com/Phongtlam/spec-workflow",
   "license": "MIT",
-  "keywords": ["planning", "spec", "tdd", "obsidian", "workflow"]
+  "keywords": [
+    "planning",
+    "spec",
+    "tdd",
+    "workflow",
+    "obsidian"
+  ]
 }

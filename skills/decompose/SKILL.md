@@ -1,6 +1,6 @@
 ---
 name: decompose
-description: Read an approved spec from the Obsidian vault and decompose it into implementation phases via planning-with-files. Creates task_plan.md and progress.md. Requires /spec-workflow:spec to have been run first.
+description: Read an approved spec from the plan root folder and decompose it into implementation phases via planning-with-files. Creates task_plan.md and progress.md. Requires /spec-workflow:spec to have been run first.
 argument-hint: "[--plan <plan_name>]"
 user-invocable: true
 allowed-tools: Write Edit Read Glob Grep Bash AskUserQuestion Skill
@@ -8,15 +8,20 @@ allowed-tools: Write Edit Read Glob Grep Bash AskUserQuestion Skill
 
 # Decompose — Break Spec into Implementation Phases
 
-**Vault path:** `${VAULT_PATH}` (from the `OBSIDIAN_VAULT_PATH` environment variable — see Vault Resolution)
-**Plans folder:** `${PLANS_DIR}` (= `${VAULT_PATH}/plans`)
+**Plan root:** `${PLAN_ROOT}` (from the `SPEC_WORKFLOW_ROOT` environment variable — required, see Root Resolution)
+**Plans folder:** `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`)
 
 Reads an approved spec and decomposes it into implementation phases using planning-with-files.
 
 
-## Vault Resolution
+## Root Resolution
 
-Resolve `VAULT_PATH` at the start of the skill by running `echo "$OBSIDIAN_VAULT_PATH"`. If it is empty, ask the user for the absolute path to their Obsidian vault with AskUserQuestion, verify the directory exists, and suggest they add `"OBSIDIAN_VAULT_PATH": "<path>"` to the `env` block of `~/.claude/settings.json` so they are not asked again. Never guess or hardcode a vault path. Derive `PLANS_DIR` (`${VAULT_PATH}/plans`) from `VAULT_PATH`.
+Every plan lives under one root folder, set by the `SPEC_WORKFLOW_ROOT` environment variable. Any directory works: a plain folder, a synced folder, or an Obsidian vault. Plans go in `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`).
+
+At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
+
+- **Set:** use it as `PLAN_ROOT`. If that directory does not exist, stop with: "`SPEC_WORKFLOW_ROOT` points to `{path}`, which does not exist. Create it, or fix the value in the `env` block of `~/.claude/settings.json`." Create `${PLANS_DIR}` if it is missing.
+- **Unset:** the root is required. Never fall back to a default, the working directory, or the repo. Ask with AskUserQuestion which folder to use, offering `~/spec-workflow` (Recommended) and noting they can enter any existing folder such as an Obsidian vault. The answer is the user's go-ahead to: expand it to an absolute path, create the folder and its `plans/` subfolder, and add `"SPEC_WORKFLOW_ROOT": "<absolute path>"` to the `env` block of `~/.claude/settings.json` (merge into the existing JSON and keep every other key). Use that path for the rest of this session, and tell the user to restart Claude Code so the plan hooks pick it up.
 
 ---
 
@@ -167,4 +172,4 @@ Next step: Run /spec-workflow:implement-plan --plan {slug} to start building.
 
 ## Guidelines
 
-- Plan files go in the vault at absolute paths. NEVER write plan files to the current working directory.
+- Plan files go in the plan root at absolute paths. NEVER write plan files to the current working directory.

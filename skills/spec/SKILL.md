@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Research context (Jira, Figma, Confluence, codebase), write a spec.md with approval gate, and save findings.md to the Obsidian vault. Downstream skills (/spec-workflow:decompose, /spec-workflow:implement-plan) find the plan by repo or --plan.
+description: Research context (Jira, Figma, Confluence, codebase), write a spec.md with approval gate, and save findings.md to the plan root folder. Downstream skills (/spec-workflow:decompose, /spec-workflow:implement-plan) find the plan by repo or --plan.
 argument-hint: "<plan-name> [--jira <ticket>] [--figma <url>] [--confluence <url>] [--repos <path1,path2>]"
 user-invocable: true
 allowed-tools: Write Edit Read Glob Grep Bash AskUserQuestion Agent
@@ -8,8 +8,8 @@ allowed-tools: Write Edit Read Glob Grep Bash AskUserQuestion Agent
 
 # Spec — Research + Synthesize + Approve
 
-**Vault path:** `${VAULT_PATH}` (from the `OBSIDIAN_VAULT_PATH` environment variable — see Vault Resolution)
-**Plans folder:** `${PLANS_DIR}` (= `${VAULT_PATH}/plans`)
+**Plan root:** `${PLAN_ROOT}` (from the `SPEC_WORKFLOW_ROOT` environment variable — required, see Root Resolution)
+**Plans folder:** `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`)
 
 Flow:
 1. **Setup** — name, repo, folder (Steps 1-6)
@@ -25,9 +25,14 @@ This skill is where the hard thinking happens — understanding the problem, syn
 When launching Agent subagents (e.g., codebase exploration in Step 8d), use `model: "opus"` to ensure deep analysis of patterns, architecture, and potential pitfalls.
 
 
-## Vault Resolution
+## Root Resolution
 
-Resolve `VAULT_PATH` at the start of the skill by running `echo "$OBSIDIAN_VAULT_PATH"`. If it is empty, ask the user for the absolute path to their Obsidian vault with AskUserQuestion, verify the directory exists, and suggest they add `"OBSIDIAN_VAULT_PATH": "<path>"` to the `env` block of `~/.claude/settings.json` so they are not asked again. Never guess or hardcode a vault path. Derive `PLANS_DIR` (`${VAULT_PATH}/plans`) from `VAULT_PATH`.
+Every plan lives under one root folder, set by the `SPEC_WORKFLOW_ROOT` environment variable. Any directory works: a plain folder, a synced folder, or an Obsidian vault. Plans go in `${PLANS_DIR}` (= `${PLAN_ROOT}/plans`).
+
+At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
+
+- **Set:** use it as `PLAN_ROOT`. If that directory does not exist, stop with: "`SPEC_WORKFLOW_ROOT` points to `{path}`, which does not exist. Create it, or fix the value in the `env` block of `~/.claude/settings.json`." Create `${PLANS_DIR}` if it is missing.
+- **Unset:** the root is required. Never fall back to a default, the working directory, or the repo. Ask with AskUserQuestion which folder to use, offering `~/spec-workflow` (Recommended) and noting they can enter any existing folder such as an Obsidian vault. The answer is the user's go-ahead to: expand it to an absolute path, create the folder and its `plans/` subfolder, and add `"SPEC_WORKFLOW_ROOT": "<absolute path>"` to the `env` block of `~/.claude/settings.json` (merge into the existing JSON and keep every other key). Use that path for the rest of this session, and tell the user to restart Claude Code so the plan hooks pick it up.
 
 ---
 
@@ -291,7 +296,7 @@ Read back `{PLAN_DIR}/spec.md` and display its content inline. Use AskUserQuesti
 - **"Revise — I have feedback"** → Ask follow-up: "What changes?" Rewrite spec.md incorporating feedback. If the rewrite introduces new open questions or `TBD`s, run Step 9c on them. Loop back.
 - **"Add more context"** → Ask what to add. Process new inputs through Step 8 (parallel fetches for new items only). **Merge** new findings into existing findings.md (append, don't overwrite). Rewrite spec.md with enriched context. Loop back.
 
-**Bound**: After 3 revisions, offer: "Would you like to approve the current spec, or edit spec.md directly in Obsidian at `{PLAN_DIR}/spec.md`?"
+**Bound**: After 3 revisions, offer: "Would you like to approve the current spec, or edit spec.md directly at `{PLAN_DIR}/spec.md`?"
 
 ---
 
@@ -314,7 +319,7 @@ Next step: Run /spec-workflow:decompose --plan {slug} to break this spec into im
 
 ## Guidelines
 
-- Plan files go in the vault at absolute paths. NEVER write plan files to the current working directory.
+- Plan files go in the plan root at absolute paths. NEVER write plan files to the current working directory.
 - Always update the `updated` frontmatter date when modifying plan files.
-- The `repo` frontmatter field enables Dataview queries like `TABLE plan, status FROM #plan WHERE repo CONTAINS "auth"`.
+- If the plan root is an Obsidian vault, the frontmatter also enables Dataview queries like `TABLE plan, status FROM #plan WHERE repo CONTAINS "auth"`.
 - `/spec-workflow:decompose` and `/spec-workflow:implement-plan` find this plan by its `repo:` frontmatter or by `--plan {slug}`, so `repo` must be set whenever a repo exists.
