@@ -14,6 +14,7 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 | `decompose` | Turns an approved spec into vertical-slice phases in `task_plan.md`. |
 | `implement-plan` | Runs every phase unattended: a Sonnet build agent does RED-GREEN-REFACTOR per slice, then three parallel reviewers (correctness, architecture, security) check the result. Optional Figma visual comparison. |
 | `resume-plan` | Lists plans in the root folder and reloads one into the session. |
+| `setup` | One-time setup: picks your root folder, saves it to settings, installs the required plugins, and reports optional MCP servers. |
 
 ## Install
 
@@ -21,6 +22,14 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 /plugin marketplace add Phongtlam/spec-workflow
 /plugin install spec-workflow@phongtlam
 ```
+
+Then run:
+
+```
+/spec-workflow:setup
+```
+
+Setup handles everything below for you and asks before changing anything. Restart Claude Code when it finishes. The rest of this section explains what it does, in case you'd rather do it by hand.
 
 ### Required plugins
 
@@ -46,7 +55,7 @@ Set it in the `env` block of `~/.claude/settings.json`:
 }
 ```
 
-The skills won't run without it. If it's unset the first time you run one, the skill asks which folder to use, creates it, and adds it to `settings.json` for you. Restart Claude Code afterwards so the plan-context hooks see it.
+The skills won't run without it. If it's unset when you run one, it starts `/spec-workflow:setup` first. Restart Claude Code afterwards so the plan-context hooks see it.
 
 Use `settings.json` rather than your shell profile: the desktop app and IDE extensions don't read `.zshrc`.
 

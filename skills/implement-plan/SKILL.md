@@ -35,7 +35,7 @@ Every plan lives under one root folder, set by the `SPEC_WORKFLOW_ROOT` environm
 At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 
 - **Set:** use it as `PLAN_ROOT`. If that directory does not exist, stop with: "`SPEC_WORKFLOW_ROOT` points to `{path}`, which does not exist. Create it, or fix the value in the `env` block of `~/.claude/settings.json`." Create `${PLANS_DIR}` if it is missing.
-- **Unset:** the root is required. Never fall back to a default, the working directory, or the repo. Ask with AskUserQuestion which folder to use, offering `~/spec-workflow` (Recommended) and noting they can enter any existing folder such as an Obsidian vault. The answer is the user's go-ahead to: expand it to an absolute path, create the folder and its `plans/` subfolder, and add `"SPEC_WORKFLOW_ROOT": "<absolute path>"` to the `env` block of `~/.claude/settings.json` (merge into the existing JSON and keep every other key). Use that path for the rest of this session, and tell the user to restart Claude Code so the plan hooks pick it up.
+- **Unset:** the root is required. Never fall back to a default, the working directory, or the repo. Invoke `Skill("spec-workflow:setup")`, which asks for a folder, creates it, and saves it to settings. Continue with the `SPEC_WORKFLOW_ROOT=` path it reports. If the user cancels setup, stop with: "spec-workflow needs a plan root folder. Run `/spec-workflow:setup` when ready."
 
 ---
 
