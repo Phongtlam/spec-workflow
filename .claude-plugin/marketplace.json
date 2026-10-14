@@ -1,0 +1,16 @@
+{
+  "name": "phongtlam",
+  "owner": {
+    "name": "Phong Lam"
+  },
+  "metadata": {
+    "description": "Phong Lam's Claude Code plugins"
+  },
+  "plugins": [
+    {
+      "name": "spec-workflow",
+      "source": "./",
+      "description": "Spec → decompose → implement workflow backed by an Obsidian vault"
+    }
+  ]
+}
