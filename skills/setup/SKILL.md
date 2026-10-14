@@ -48,12 +48,14 @@ claude plugin list 2>/dev/null
 
 If that command fails, read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json` instead.
 
-For each missing plugin, ask once (one AskUserQuestion listing all missing plugins) whether to install them now. On yes, run:
+For each missing plugin, ask once (one AskUserQuestion listing all missing plugins) whether to install them now. On yes, check `claude plugin marketplace list` and add each marketplace that is not listed, then install:
 
-| Plugin | Commands |
-|---|---|
-| planning-with-files | `claude plugin marketplace add OthmanAdi/planning-with-files` then `claude plugin install planning-with-files@planning-with-files` |
-| ralph-loop | `claude plugin install ralph-loop@claude-plugins-official` (if the marketplace is unknown, first `claude plugin marketplace add anthropics/claude-plugins-official`) |
+| Plugin | Marketplace to add if missing | Install |
+|---|---|---|
+| planning-with-files | `claude plugin marketplace add OthmanAdi/planning-with-files` | `claude plugin install planning-with-files@planning-with-files` |
+| ralph-loop | `claude plugin marketplace add anthropics/claude-plugins-official` | `claude plugin install ralph-loop@claude-plugins-official` |
+
+Always add the marketplace first when it is missing: a fresh Claude config may not include `claude-plugins-official`, and the install error then says "not found in marketplace" rather than naming the missing marketplace.
 
 On no, print the commands so the user can run them later. Report failures with their output; do not retry blindly.
 

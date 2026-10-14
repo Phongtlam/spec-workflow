@@ -38,6 +38,7 @@ Setup handles everything below for you and asks before changing anything. Restar
 ```
 /plugin marketplace add OthmanAdi/planning-with-files
 /plugin install planning-with-files@planning-with-files
+/plugin marketplace add anthropics/claude-plugins-official
 /plugin install ralph-loop@claude-plugins-official
 ```
 
