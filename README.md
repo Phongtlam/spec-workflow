@@ -16,7 +16,8 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 | `resume-plan` | Lists plans in the root folder and reloads one into the session. |
 | `plan-status` | Read-only "where am I?" view of the plan for the current repo, or any plan by name. |
 | `audit-plans` | Checks open plans against GitHub, marks the ones whose PRs merged to main as completed (with your confirmation), writes delivery notes, and archives them. |
-| `setup` | One-time setup: picks your root folder, saves it to settings, installs the required plugins, and reports optional MCP servers. |
+| `run-qa` | Optional final pass before a PR: `/simplify`, then your chosen review skill(s), fixing issues each round. Repeats 3 times by default. |
+| `setup` | One-time setup: picks your root folder and review skill, saves them to settings, installs the required plugins, and reports optional MCP servers. |
 
 ## Install
 
@@ -61,6 +62,26 @@ Set it in the `env` block of `~/.claude/settings.json`:
 The skills won't run without it. If it's unset when you run one, it starts `/spec-workflow:setup` first. Restart Claude Code afterwards so the plan-context hooks see it.
 
 Use `settings.json` rather than your shell profile: the desktop app and IDE extensions don't read `.zshrc`.
+
+### Choose a review skill for run-qa (optional)
+
+`/spec-workflow:run-qa` runs `/simplify` and then a review skill. Pick the review skill with `SPEC_WORKFLOW_REVIEW_SKILL`, in the same `env` block:
+
+```json
+{
+  "env": {
+    "SPEC_WORKFLOW_ROOT": "/absolute/path/to/your/folder",
+    "SPEC_WORKFLOW_REVIEW_SKILL": "code-review:code-review"
+  }
+}
+```
+
+- **Unset:** uses `pr-review-toolkit:review-pr`. Install it with `/plugin install pr-review-toolkit@claude-plugins-official`.
+- **Any installed skill:** use the name as it appears in your skills list, e.g. `code-review:code-review` or one of your own.
+- **Several:** separate them with commas, e.g. `pr-review-toolkit:review-pr,code-review:code-review`. They run in that order after `/simplify`.
+- **For one run:** `/spec-workflow:run-qa --review <skill>` overrides the setting.
+
+If a named skill isn't installed, run-qa stops and tells you, rather than quietly using another one.
 
 ### Optional MCP servers
 

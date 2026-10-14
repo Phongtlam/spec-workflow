@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Set up spec-workflow — choose the plan root folder (SPEC_WORKFLOW_ROOT), save it to Claude settings, check required plugins (planning-with-files, ralph-loop), and report optional MCP servers. Run once after installing, or when another spec-workflow skill reports the root is not configured.
+description: Set up spec-workflow — choose the plan root folder (SPEC_WORKFLOW_ROOT) and the review skill for /spec-workflow:run-qa (SPEC_WORKFLOW_REVIEW_SKILL), save them to Claude settings, check required plugins (planning-with-files, ralph-loop), and report optional MCP servers. Run once after installing, or when another spec-workflow skill reports the root is not configured.
 argument-hint: "[root-folder-path]"
 user-invocable: true
 allowed-tools: Read Write Edit Bash AskUserQuestion
@@ -59,6 +59,21 @@ Always add the marketplace first when it is missing: a fresh Claude config may n
 
 On no, print the commands so the user can run them later. Report failures with their output; do not retry blindly.
 
+## Step 3b: Review Skill for run-qa
+
+Skip this step when another spec-workflow skill invoked setup only to resolve a missing root.
+
+`/spec-workflow:run-qa` runs `/simplify` and then a review skill set by `SPEC_WORKFLOW_REVIEW_SKILL` (comma-separated for several, run in order). When unset it uses `pr-review-toolkit:review-pr`.
+
+1. Read the current value from `echo "$SPEC_WORKFLOW_REVIEW_SKILL"`, then from `env.SPEC_WORKFLOW_REVIEW_SKILL` in `SETTINGS`.
+2. Ask with AskUserQuestion: "Which review skill should /spec-workflow:run-qa use?" Options:
+   - the current value, if set (label it "Keep {value}")
+   - `pr-review-toolkit:review-pr` (Recommended, the default)
+   - `code-review:code-review`
+   - the user can type any other installed skill name, or a comma-separated list
+3. Check each chosen skill is in this session's available skills. If `pr-review-toolkit:review-pr` is chosen and missing, add it to the Step 3 install offer (`claude plugin install pr-review-toolkit@claude-plugins-official`, marketplace `anthropics/claude-plugins-official`). If another chosen skill is missing, warn and ask whether to keep it anyway.
+4. If the choice is exactly the default, remove `SPEC_WORKFLOW_REVIEW_SKILL` from `SETTINGS` `env` if present (unset means default). Otherwise write `"SPEC_WORKFLOW_REVIEW_SKILL": "<value>"` into `env`, preserving every other key, same as Step 2.
+
 ## Step 4: Optional MCP Servers
 
 Look at the tools available in this session and report which of these are connected. Do not install anything.
@@ -89,6 +104,7 @@ spec-workflow is set up.
 
 Plan root:   {path}  (saved to {SETTINGS})
 Plugins:     planning-with-files {✓|missing}, ralph-loop {✓|missing}
+QA review:   {skill list}  ({default | saved to SETTINGS}) {✓|missing}
 Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, plan RAG {✓|–}, gh {✓|–}
 
 Next: restart Claude Code so hooks see SPEC_WORKFLOW_ROOT, then run
