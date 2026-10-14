@@ -8,16 +8,16 @@ hooks:
   UserPromptSubmit: 
     - hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" prompt; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" prompt; true"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" post-slice; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" post-slice; true"
   Stop:
     - hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" stop; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" stop; true"
 ---
 
 # Implementation Plan — Execute Phases with Build Agent

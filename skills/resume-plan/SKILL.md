@@ -8,21 +8,21 @@ hooks:
   UserPromptSubmit:
     - hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" prompt; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" prompt; true"
   PreToolUse:
     - matcher: "Write|Edit|Bash|Read|Glob|Grep"
       hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" pre; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" pre; true"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" post; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" post; true"
   Stop:
     - hooks:
         - type: command
-          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls \"$HOME\"/.claude/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | tail -1); [ -f \"$S\" ] && sh \"$S\" stop; true"
+          command: "S=\"$CLAUDE_PLUGIN_ROOT/scripts/plan-hook.sh\"; [ -f \"$S\" ] || S=$(ls -t \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/spec-workflow/*/scripts/plan-hook.sh 2>/dev/null | head -1); [ -f \"$S\" ] && sh \"$S\" stop; true"
 ---
 
 # Resume Plan — Load Existing Plan from the Plan Root
