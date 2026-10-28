@@ -24,10 +24,10 @@ Run `echo "$SPEC_WORKFLOW_ROOT"`.
 
 1. **Pick the plan to show.** Several plans can be open at once, so there is no single active plan.
    - If `$ARGUMENTS` names a plan, match it against folder slugs in `${PLANS_DIR}` (case-insensitive, partial match OK). One match → step 3. Several → AskUserQuestion to pick.
-   - Otherwise get the current repo (`git rev-parse --show-toplevel`, else the working directory) and find plans whose `task_plan.md` frontmatter has `repo:` or `workspace:` equal to it and `status` other than `completed`. One match → step 3. Several → AskUserQuestion to pick one, listing name, status and updated date.
+   - Otherwise get the current repo (`git rev-parse --show-toplevel`, else the working directory) and find plans whose `task_plan.md` frontmatter has `repo:` or `workspace:` equal to it and `status` other than `completed`. One match → step 3. Several → AskUserQuestion to pick one, listing name, author, status and updated date.
    - No match → step 2.
 
-2. **List all plans.** Glob `${PLANS_DIR}/*/task_plan.md`. For each, read the first 15 lines to extract plan name, status, repo and updated date. Sort by updated date (newest first).
+2. **List all plans.** Glob `${PLANS_DIR}/*/task_plan.md`. For each, read the first 15 lines to extract plan name, author, status, repo and updated date. Show the author next to each plan name (`unknown` when the field is missing or empty). Sort by updated date (newest first).
 
    Also glob `${PLANS_DIR}/*/spec.md` for folders without a `task_plan.md` and list them as `spec only — run /spec-workflow:decompose`.
 
@@ -41,6 +41,7 @@ Run `echo "$SPEC_WORKFLOW_ROOT"`.
 
    ```
    Plan: {plan name}
+   Author: {author, or "unknown"}
    Repo: {repo path}{  (worktree: {workspace}) if set}
    Status: {status from frontmatter}
    Progress: Phase {current} of {total}
@@ -58,7 +59,7 @@ Run `echo "$SPEC_WORKFLOW_ROOT"`.
 
    Use `[x]` for complete, `[>]` for in_progress, `[ ]` for pending.
 
-   If other open plans exist for the same repo, add one line: `Also open in this repo: {names}`.
+   If other open plans exist for the same repo, add one line: `Also open in this repo: {name} ({author}), …`.
 
 4. **Offer next actions.** After showing status, mention available commands:
    - `/spec-workflow:implement-plan --plan {slug}` to keep building

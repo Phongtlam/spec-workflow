@@ -45,7 +45,7 @@ Plans are independent: several can be open at once, in the same repo or differen
 
 1. If `--plan <name>` was given, glob `${PLANS_DIR}/*/` and match the slug (case-insensitive, partial match OK).
 2. Otherwise, get the current repo (`git rev-parse --show-toplevel`, else the working directory) and find plans whose `task_plan.md` frontmatter has `repo:` or `workspace:` equal to that path and a `status` other than `completed`.
-3. One match → use it. Several → AskUserQuestion listing them (plan name, status, updated date). None → stop with: "No plan found for this repo. Run `/spec-workflow:spec` then `/spec-workflow:decompose` first, or pass `--plan <name>`."
+3. One match → use it. Several → AskUserQuestion listing them (plan name, author, status, updated date). None → stop with: "No plan found for this repo. Run `/spec-workflow:spec` then `/spec-workflow:decompose` first, or pass `--plan <name>`."
 
 Once resolved, `{PLAN_DIR}` is this plan for the rest of the session. Name the plan in summaries so parallel sessions stay distinguishable.
 

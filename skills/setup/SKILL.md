@@ -103,7 +103,7 @@ Everything works without them; each skill skips what is missing.
 ## Step 6: Verify and Summarize
 
 1. Confirm the root is writable: `touch "$ROOT/plans/.spec-workflow-check" && rm "$ROOT/plans/.spec-workflow-check"`.
-2. Confirm `git` is installed (`git --version`).
+2. Confirm `git` is installed (`git --version`). Then read `git config user.name`: plans record it as their `author` so teammates sharing a plan root can tell whose plan is whose. If it is empty, say plans will fall back to `$USER` and suggest `git config --global user.name "Your Name"`. Don't set it yourself.
 3. Check the GitHub CLI with `gh auth status`. It is optional: only `/spec-workflow:audit-plans` uses it to verify merged PRs. If it is missing or logged out, say so and continue.
 4. Present:
 
@@ -111,6 +111,7 @@ Everything works without them; each skill skips what is missing.
 spec-workflow is set up.
 
 Plan root:   {path}  (saved to {SETTINGS})
+Plan author: {git user.name | $USER (git user.name not set)}
 Plugins:     planning-with-files {✓|missing}, ralph-loop {✓|missing}
 QA review:   {skill list}  ({default | saved to SETTINGS}) {✓|missing}
 Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, plan RAG {✓|–}, gh {✓|–}

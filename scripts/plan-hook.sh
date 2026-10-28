@@ -33,7 +33,10 @@ if [ "$COUNT" -gt 1 ]; then
   case "$MODE" in
     prompt|stop)
       echo "[spec-workflow] $COUNT open plans for $REPO:"
-      printf '%s' "$MATCHES" | sed 's/^/  - /'
+      printf '%s' "$MATCHES" | while IFS= read -r d; do
+        AUTHOR=$(frontmatter "$d/task_plan.md" | grep -m1 '^author:' | sed -E 's/^author: *//; s/^"//; s/"$//')
+        echo "  - $d${AUTHOR:+ (by $AUTHOR)}"
+      done
       echo "[spec-workflow] Stay on the plan this session is working on; update only its files."
       ;;
   esac
@@ -46,7 +49,8 @@ PHASE=$(grep -m1 '^current_phase:' "$PLAN" | sed 's/current_phase: *//')
 
 case "$MODE" in
   prompt)
-    echo "[spec-workflow] Plan: $PLAN_DIR — Phase $PHASE active"
+    AUTHOR=$(frontmatter "$PLAN" | grep -m1 '^author:' | sed -E 's/^author: *//; s/^"//; s/"$//')
+    echo "[spec-workflow] Plan: $PLAN_DIR${AUTHOR:+ (by $AUTHOR)} — Phase $PHASE active"
     sed -n "/### Phase $PHASE/,/^### Phase/p" "$PLAN" | head -25
     echo ''
     echo '=== recent progress ==='

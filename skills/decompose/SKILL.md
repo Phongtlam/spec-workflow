@@ -41,7 +41,7 @@ Plans are independent: several can be open at once, in the same repo or differen
 2. Otherwise, get the current repo (`git rev-parse --show-toplevel`, else the working directory) and find open plans whose `spec.md` frontmatter has `repo:` or `workspace:` equal to that path. Prefer plans with no `task_plan.md` yet; if exactly one plan has none, use it without asking.
 
 A plan is **open** when it has no `task_plan.md` yet (spec stage), or its `task_plan.md` `status` is not `completed`. `spec.md` status never means finished.
-3. One match → use it. Several → AskUserQuestion listing them (plan name, status, updated date). None → stop with: "No plan found for this repo. Run `/spec-workflow:spec <plan-name>` to create a spec first, or pass `--plan <name>`."
+3. One match → use it. Several → AskUserQuestion listing them (plan name, author, status, updated date). None → stop with: "No plan found for this repo. Run `/spec-workflow:spec <plan-name>` to create a spec first, or pass `--plan <name>`."
 
 Once resolved, `{PLAN_DIR}` is this plan for the rest of the session. Name the plan in summaries so parallel sessions stay distinguishable.
 
@@ -101,7 +101,7 @@ Read `task_plan.md` and `progress.md` templates — if several cached versions m
 
 ### Frontmatter
 
-Get today's date via `date +%Y-%m-%d`. Copy `plan`, `repo`, and `related_repos` from spec.md frontmatter.
+Get today's date via `date +%Y-%m-%d`. Copy `plan`, `author`, `repo`, and `related_repos` from spec.md frontmatter. If spec.md has no `author` (older plans), use `git config user.name`, falling back to `$USER`.
 
 ### task_plan.md
 

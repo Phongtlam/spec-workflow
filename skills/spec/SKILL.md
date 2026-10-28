@@ -40,12 +40,13 @@ At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 
 ### Frontmatter Template
 
-All plan files use this structure (get today's date via `date +%Y-%m-%d`):
+All plan files use this structure (get today's date via `date +%Y-%m-%d`, and the author via `git config user.name`, falling back to `$USER` when it is empty):
 
 ```yaml
 ---
 plan: "{Plan Name}"
 type: {type}
+author: "{author name}"
 repo: {repo path or ""}
 related_repos: []
 created: {today}
@@ -56,6 +57,8 @@ tags:
   - {tag}
 ---
 ```
+
+`author` records who created the plan, so teammates sharing one plan root can tell whose plan is whose. Set it once at creation and never change it when someone else edits or resumes the plan.
 
 The `related_repos` field is optional. Include it when the plan spans multiple repos. `repo` is always the primary repo. `related_repos` captures secondary repos for cross-repo context.
 
@@ -103,7 +106,7 @@ Plans are independent — several can be open at once, even in the same repo. Ne
 
 A plan is **open** when it has no `task_plan.md` yet (spec stage), or its `task_plan.md` `status` is not `completed`. `spec.md` status never means finished.
 
-If `$ARGUMENTS` is empty and the current repo already has open plans (matching `repo:` or `workspace:` in `spec.md` or `task_plan.md`), ask with AskUserQuestion: "This repo has open plans: **{names}**. Start a new spec, or continue one of them?" If they choose to continue one, follow **Continuing an Existing Plan** (Step 5) for it and stop. Otherwise continue to Step 2.
+If `$ARGUMENTS` is empty and the current repo already has open plans (matching `repo:` or `workspace:` in `spec.md` or `task_plan.md`), ask with AskUserQuestion: "This repo has open plans: **{name} ({author})**, …. Start a new spec, or continue one of them?" If they choose to continue one, follow **Continuing an Existing Plan** (Step 5) for it and stop. Otherwise continue to Step 2.
 
 ---
 

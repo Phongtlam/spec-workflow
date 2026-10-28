@@ -102,6 +102,10 @@ There is no global "active plan". A skill picks its plan in this order:
 
 So you can run plans in different repos in parallel, or in one repo using `implement-plan`'s worktree option. When another open plan is already using a repo's main checkout, `implement-plan` recommends a worktree, since two plans sharing one checkout would switch branches under each other. The hooks that inject the current phase into each prompt use the same repo lookup.
 
+## Plan authors
+
+Every plan records who created it in an `author:` frontmatter field, taken from `git config user.name` (or `$USER` if that is empty). If teammates share one plan root, `plan-status`, `resume-plan`, `audit-plans` and the plan hooks show the author next to each plan so you can tell whose is whose. Plans created before this field existed show as `unknown`; add `author: "Name"` to their frontmatter to fix that.
+
 ## Platform notes
 
 - `implement-plan` keeps a Mac awake with `caffeinate` during a run. Elsewhere it skips that step.

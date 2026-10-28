@@ -52,6 +52,7 @@ At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 3. **Present plans for selection.** For each plan folder found, read the first 15 lines of task_plan.md to extract:
    - Plan name: from `plan:` frontmatter field, or from the `# Task Plan:` heading, or from the folder name
    - Status: from `status:` frontmatter field, or inferred from phase statuses
+   - Author: from `author:` frontmatter field, or "unknown"
    - Repo: from `repo:` frontmatter field, or "unknown"
    - Updated: from `updated:` frontmatter field
 
@@ -59,7 +60,7 @@ At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 
    Sort by updated date (newest first). Present using AskUserQuestion with options formatted as:
    ```
-   [{status}] {plan name} — repo: {repo basename} (updated: {date})
+   [{status}] {plan name} — by {author} — repo: {repo basename} (updated: {date})
    ```
    Prefix plans for the current repo with "[this repo]" and list them first. Show up to 10 plans.
 
@@ -70,6 +71,7 @@ At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 6. **Add frontmatter if missing (legacy plans).** If the plan files lack YAML frontmatter (no `---` at line 1), add it now:
    - Infer plan name from the folder name (expand slug: hyphens to spaces, title case)
    - Set `repo` to empty string and mention the user can update it
+   - Set `author` to empty string (the original author is unknown; never assume it is the current user) and mention the user can fill it in
    - Set `created` to today (we don't know the original date)
    - Set `type` appropriately for each file (`task_plan`, `findings`, `progress`)
    - Set `tags` appropriately (`plan` + type)

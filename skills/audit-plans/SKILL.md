@@ -28,6 +28,7 @@ This skill uses the GitHub CLI. If `gh auth status` fails, tell the user to inst
 2. If none found, tell the user "No plans found." and stop.
 3. Read the first 15 lines of each to extract:
    - `plan:` — plan name
+   - `author:` — who created the plan (`unknown` if missing)
    - `status:` — current status (completed, active, paused, etc.)
    - `repo:` — primary repository path
    - `related_repos:` — additional repos (if present)
@@ -43,12 +44,12 @@ Several plans can be in progress at once, so there is no single active plan to s
 
 Present a summary table to the user:
 ```
-| Plan | Status | Has artifacts.md | Action |
-|------|--------|-------------------|--------|
-| ... | completed | Yes | Skip (already audited) |
-| ... | completed | No | Find PRs, write artifacts |
-| ... | active | — | Audit for completion |
-| ... | paused | — | Audit for completion |
+| Plan | Author | Status | Has artifacts.md | Action |
+|------|--------|--------|-------------------|--------|
+| ... | ... | completed | Yes | Skip (already audited) |
+| ... | ... | completed | No | Find PRs, write artifacts |
+| ... | ... | active | — | Audit for completion |
+| ... | ... | paused | — | Audit for completion |
 ```
 
 If there are no audit-candidates and no needs-artifacts plans, say "All plans are up to date. Nothing to audit." and stop.
@@ -134,6 +135,7 @@ Create `artifacts.md` in the plan folder:
 ```markdown
 ---
 plan: "{plan name}"
+author: "{author from task_plan.md, or empty}"
 type: artifacts
 created: {today's date YYYY-MM-DD}
 tags:
@@ -164,7 +166,7 @@ If the plan has multiple PRs, list them all in the table.
 **Do NOT silently flip statuses.** Present a final confirmation:
 
 Use AskUserQuestion: "Ready to mark these plans as completed. Confirm?" with multiSelect listing each plan and its evidence:
-- `{plan name} — PR #{number} verified on {main/master}`
+- `{plan name} ({author}) — PR #{number} verified on {main/master}`
 
 For each plan the user confirms:
 - Read task_plan.md
