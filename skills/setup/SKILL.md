@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Set up spec-workflow — choose the plan root folder (SPEC_WORKFLOW_ROOT) and the review skill for /spec-workflow:run-qa (SPEC_WORKFLOW_REVIEW_SKILL), save them to Claude settings, check required plugins (planning-with-files, ralph-loop), and report optional MCP servers. Run once after installing, or when another spec-workflow skill reports the root is not configured.
+description: Set up spec-workflow — choose the plan root folder (SPEC_WORKFLOW_ROOT) and the review skill for /spec-workflow:run-qa (SPEC_WORKFLOW_REVIEW_SKILL), save them to Claude settings, check required plugins (planning-with-files, ralph-loop), offer to turn on automatic plugin updates, and report optional MCP servers. Run once after installing, or when another spec-workflow skill reports the root is not configured.
 argument-hint: "[root-folder-path]"
 user-invocable: true
 allowed-tools: Read Write Edit Bash AskUserQuestion
@@ -82,6 +82,30 @@ Skip this step when another spec-workflow skill invoked setup only to resolve a 
 
 Newly installed plugins load after a restart, which the Step 6 summary already asks for.
 
+## Step 3c: Automatic Updates
+
+Skip this step when another spec-workflow skill invoked setup only to resolve a missing root.
+
+Claude Code auto-updates plugins from Anthropic's official marketplaces, but not from third-party ones like `phongtlam`, which this plugin comes from. Without auto-update, users stay on their installed version until they run `claude plugin marketplace update phongtlam` and `claude plugin update spec-workflow@phongtlam`.
+
+1. Read `extraKnownMarketplaces.phongtlam.autoUpdate` in `SETTINGS`. If it is `true`, report "Auto-update: on" and skip the rest of this step.
+2. Ask with AskUserQuestion: "Turn on automatic updates for spec-workflow? Claude Code will check for a new version each time it starts." Options:
+   - "Turn on" (Recommended)
+   - "Leave off" — updates stay manual
+3. On "Turn on", set `extraKnownMarketplaces.phongtlam` in `SETTINGS` to include `"autoUpdate": true`, preserving every other key and value exactly. If the entry is missing, create it with its source:
+
+   ```json
+   "phongtlam": {
+     "source": { "source": "github", "repo": "Phongtlam/spec-workflow" },
+     "autoUpdate": true
+   }
+   ```
+
+   If the entry exists, keep its `source` as it is and only add `"autoUpdate": true`. Validate the JSON as in Step 2.
+4. On "Leave off", print the two update commands above so the user can run them later. They can also turn auto-update on in `/plugin` → Marketplaces → `phongtlam` in an interactive `claude` terminal.
+
+Updates apply after a restart (or `/reload-plugins`).
+
 ## Step 4: Optional MCP Servers
 
 Look at the tools available in this session and report which of these are connected. Do not install anything.
@@ -113,6 +137,7 @@ spec-workflow is set up.
 Plan root:   {path}  (saved to {SETTINGS})
 Plan author: {git user.name | $USER (git user.name not set)}
 Plugins:     planning-with-files {✓|missing}, ralph-loop {✓|missing}
+Auto-update: {on | off — update with claude plugin update spec-workflow@phongtlam}
 QA review:   {skill list}  ({default | saved to SETTINGS}) {✓|missing}
 Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, plan RAG {✓|–}, gh {✓|–}
 

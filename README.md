@@ -17,7 +17,7 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 | `plan-status` | Read-only "where am I?" view of the plan for the current repo, or any plan by name. |
 | `audit-plans` | Checks open plans against GitHub, marks the ones whose PRs merged to main as completed (with your confirmation), writes delivery notes, and archives them. |
 | `run-qa` | Optional final pass before a PR: `/simplify`, then your chosen review skill(s), fixing issues each round. Repeats 3 times by default. |
-| `setup` | One-time setup: picks your root folder and review skill, saves them to settings, installs the required plugins, and reports optional MCP servers. |
+| `setup` | One-time setup: picks your root folder and review skill, saves them to settings, installs the required plugins, offers to turn on automatic updates, and reports optional MCP servers. |
 
 ## Install
 
@@ -91,6 +91,20 @@ Each one is used when present and skipped when not:
 - **Figma** for design values and visual comparison
 - **Playwright** for implementation screenshots
 - **obsidian-plan-rag** for pulling lessons from your past plans
+
+## Updating
+
+Claude Code does not auto-update plugins from third-party marketplaces by default, so you stay on your installed version until you update:
+
+```bash
+claude plugin marketplace update phongtlam
+```
+
+```bash
+claude plugin update spec-workflow@phongtlam
+```
+
+Then restart Claude Code. `/spec-workflow:setup` offers to turn on automatic updates instead, by setting `autoUpdate: true` for the `phongtlam` entry under `extraKnownMarketplaces` in `~/.claude/settings.json`. Claude Code then checks for a new version each time it starts. You can also toggle it in `/plugin` → Marketplaces → `phongtlam`. If your installed version predates this option, update once by hand and re-run setup.
 
 ## Running several plans at once
 
