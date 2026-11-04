@@ -17,7 +17,7 @@ A Claude Code plugin for spec-driven development. It researches and writes a spe
 | `plan-status` | Read-only "where am I?" view of the plan for the current repo, or any plan by name. |
 | `audit-plans` | Checks open plans against GitHub, marks the ones whose PRs merged to main as completed (with your confirmation), writes delivery notes, and archives them. |
 | `run-qa` | Optional final pass before a PR: `/simplify`, then your chosen review skill(s), fixing issues each round. Repeats 3 times by default. |
-| `setup` | One-time setup: picks your root folder and review skill, saves them to settings, installs the required plugins, offers to turn on automatic updates, and reports optional MCP servers. |
+| `setup` | One-time setup: picks your root folder, review skill and plan memory server, saves them to settings, installs the required plugins, offers to turn on automatic updates, and reports optional MCP servers. |
 
 ## Install
 
@@ -83,6 +83,37 @@ Use `settings.json` rather than your shell profile: the desktop app and IDE exte
 
 If a named skill isn't installed, run-qa stops and tells you, rather than quietly using another one.
 
+### Choose a plan memory server (optional)
+
+`spec`, `decompose` and `implement-plan` pull lessons from your past plans (similar plans, repo gotchas, phase patterns) through an MCP server. Pick it with `SPEC_WORKFLOW_RAG`, in the same `env` block:
+
+```json
+{
+  "env": {
+    "SPEC_WORKFLOW_ROOT": "/absolute/path/to/your/folder",
+    "SPEC_WORKFLOW_RAG": "my-plan-memory"
+  }
+}
+```
+
+- **Unset:** uses `obsidian-plan-rag`. If it isn't connected, the skills skip plan memory quietly.
+- **A server name:** the name you registered the MCP server under (as in `claude mcp list`). If it isn't connected, the skills warn you and continue without plan memory. They never fall back to another server.
+- **`none`:** turns plan memory off.
+
+#### Plan memory API
+
+Any MCP server works if it provides these tools. Argument names can differ: the skills read each tool's schema. Only `similar_plans` is required; the skills skip whichever optional tools are missing.
+
+| Tool | Required | Input | Returns |
+|---|---|---|---|
+| `similar_plans` | yes | a text query (plan goal, description, repo and domain keywords); optionally a result limit or status filter | past plans or plan sections ranked by relevance |
+| `repo_memory` | no | a repo path or name, plus topic keywords | prior gotchas, testing patterns, blockers and notes for that repo |
+| `get_plan_context` | no | a plan path or id from a search result | that plan's phases, acceptance criteria and outcome |
+| `refresh_index` | no | — | re-indexes the plan root so new plan files are searchable |
+| `index_status` | no | — | how fresh the index is |
+
+Each search result should include `filePath`, `sourceLineStart`, `sourceLineEnd` and a short snippet; a plan `status` (such as completed or active) helps the skills prefer finished plans. The skills cite results as `{filePath}:{sourceLineStart}-{sourceLineEnd}` in `findings.md`, `progress.md` and phase journals. A server should index the files under `SPEC_WORKFLOW_ROOT/plans/`: `spec.md`, `findings.md`, `task_plan.md` and `progress.md`.
+
 ### Optional MCP servers
 
 Each one is used when present and skipped when not:
@@ -90,7 +121,7 @@ Each one is used when present and skipped when not:
 - **Atlassian** for `--jira` and `--confluence` context
 - **Figma** for design values and visual comparison
 - **Playwright** for implementation screenshots
-- **obsidian-plan-rag** for pulling lessons from your past plans
+- **A plan memory server** (`obsidian-plan-rag` by default, see above) for pulling lessons from your past plans
 
 ## Updating
 

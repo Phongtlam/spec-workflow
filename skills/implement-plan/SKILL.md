@@ -64,7 +64,21 @@ All plan files live at absolute paths under the plan root. NEVER write plan file
 
 ## Plan RAG Policy
 
-If the `obsidian-plan-rag` MCP server is available, use it opportunistically at phase start. Prefer compact queries and never pass raw, large retrieval dumps to build agents.
+Plan memory comes from the MCP server named by `SPEC_WORKFLOW_RAG`. Run `echo "$SPEC_WORKFLOW_RAG"` once, call the result `{rag}`:
+
+- **Unset:** `{rag}` is `obsidian-plan-rag`, the default.
+- **`none`:** plan memory is off. Skip this policy and every plan RAG step below without logging anything.
+- **Any other value:** that server name.
+
+The server must provide the plan memory API documented in the README: `similar_plans` is required; `repo_memory`, `get_plan_context`, `refresh_index` and `index_status` are optional. Its tools appear as `mcp__…{rag}__<tool>`. Read each tool's schema for its argument names, and skip any optional tool the server does not provide. Results cite `filePath`, `sourceLineStart` and `sourceLineEnd`.
+
+- **`{rag}` is connected and has `similar_plans`:** use it as described below.
+- **Default, not connected:** log "Plan RAG unavailable, skipping" and continue.
+- **Set explicitly, but not connected or missing `similar_plans`:** tell the user once: "Plan RAG server `{rag}` (from `SPEC_WORKFLOW_RAG`) is not connected or does not provide `similar_plans`. Connect it, or run `/spec-workflow:setup` to choose another server or `none`." Log it and continue without plan memory. Never use a different server instead.
+
+A failed RAG call never blocks the workflow: log it and continue.
+
+Use it opportunistically at phase start. Prefer compact queries and never pass raw, large retrieval dumps to build agents.
 
 Default retrievals:
 - Call `refresh_index` or `index_status` when plan files were just updated.
@@ -72,7 +86,7 @@ Default retrievals:
 - Call `similar_plans` with the phase goal and acceptance criteria when the work has a recognizable prior pattern.
 - Call `get_plan_context` only for a specific plan that appears highly relevant.
 
-Add only the useful citations to the phase context using `{filePath}:{sourceLineStart}-{sourceLineEnd}`. If MCP is unavailable, log "Plan RAG unavailable, skipping" in the phase journal and continue. Do not duplicate database/search logic inside the skill.
+Add only the useful citations to the phase context using `{filePath}:{sourceLineStart}-{sourceLineEnd}`. Log any "unavailable" message in the phase journal. Do not duplicate database/search logic inside the skill.
 
 ---
 
@@ -154,7 +168,7 @@ From here on, **`{repo}` means the chosen workspace path** — pass it to build 
 
 ### 0b.1. Retrieve plan memory
 
-After repo/tooling detection, query plan RAG if available:
+After repo/tooling detection, query plan RAG if available (see Plan RAG Policy):
 
 1. Refresh or check index freshness.
 2. Retrieve `repo_memory` for the primary repo and current phase keywords.

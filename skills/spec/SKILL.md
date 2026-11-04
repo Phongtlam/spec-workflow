@@ -73,9 +73,23 @@ All MCP calls (Jira, Figma, Confluence) are optional. If any MCP server is unava
 
 ### Plan RAG Policy
 
-If the `obsidian-plan-rag` MCP server is available, use it opportunistically. Start with `refresh_index` or `index_status` when freshness matters, then call `similar_plans` using the plan name, user description, Jira summary, and repo keywords. Prefer completed plans first when looking for reusable patterns. Record useful returned snippets in `findings.md` under a **Prior Plan Memory** subsection with source file paths and line ranges.
+Plan memory comes from the MCP server named by `SPEC_WORKFLOW_RAG`. Run `echo "$SPEC_WORKFLOW_RAG"` once, call the result `{rag}`:
 
-If the MCP server is unavailable, log "Plan RAG unavailable, skipping" in findings and continue. Do not shell out to duplicate DB logic inside this skill.
+- **Unset:** `{rag}` is `obsidian-plan-rag`, the default.
+- **`none`:** plan memory is off. Skip this policy and every plan RAG step below without logging anything.
+- **Any other value:** that server name.
+
+The server must provide the plan memory API documented in the README: `similar_plans` is required; `repo_memory`, `get_plan_context`, `refresh_index` and `index_status` are optional. Its tools appear as `mcp__…{rag}__<tool>`. Read each tool's schema for its argument names, and skip any optional tool the server does not provide. Results cite `filePath`, `sourceLineStart` and `sourceLineEnd`.
+
+- **`{rag}` is connected and has `similar_plans`:** use it as described below.
+- **Default, not connected:** log "Plan RAG unavailable, skipping" and continue.
+- **Set explicitly, but not connected or missing `similar_plans`:** tell the user once: "Plan RAG server `{rag}` (from `SPEC_WORKFLOW_RAG`) is not connected or does not provide `similar_plans`. Connect it, or run `/spec-workflow:setup` to choose another server or `none`." Log it and continue without plan memory. Never use a different server instead.
+
+A failed RAG call never blocks the workflow: log it and continue.
+
+Use it opportunistically. Start with `refresh_index` or `index_status` when freshness matters, then call `similar_plans` using the plan name, user description, Jira summary, and repo keywords. Prefer completed plans first when looking for reusable patterns. Record useful returned snippets in `findings.md` under a **Prior Plan Memory** subsection with source file paths and line ranges.
+
+Log any "unavailable" message in findings. Do not shell out to duplicate DB logic inside this skill.
 
 ## Recursive Quality Policy
 
@@ -190,7 +204,7 @@ Load templates first (see "Template Loading" in Shared Conventions above).
 
 ### 8.0. Prior Plan Memory
 
-Before external research, query the plan RAG if available:
+Before external research, query the plan RAG if available (see Plan RAG Policy):
 
 1. Call `similar_plans` with a compact text packet: plan name, user description, Jira summary if known, repo basename, and important domain keywords.
 2. For the top relevant completed or active plans, call `get_plan_context` only when the search snippet is clearly useful.

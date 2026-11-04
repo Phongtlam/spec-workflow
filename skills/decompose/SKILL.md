@@ -27,9 +27,23 @@ At the start of the skill, run `echo "$SPEC_WORKFLOW_ROOT"`.
 
 ## Plan RAG Policy
 
-If the `obsidian-plan-rag` MCP server is available, use it opportunistically after reading the approved spec and findings. Call `refresh_index` or `index_status` when freshness matters, then use `similar_plans` with the spec goal, repo, and domain keywords. For clearly relevant prior plans, call `get_plan_context` to inspect phase structure and acceptance criteria.
+Plan memory comes from the MCP server named by `SPEC_WORKFLOW_RAG`. Run `echo "$SPEC_WORKFLOW_RAG"` once, call the result `{rag}`:
 
-Use retrieved context to improve decomposition shape, sequencing, risk handling, and verification ideas. Cite useful returned snippets in `progress.md` or decomposition notes with `{filePath}:{sourceLineStart}-{sourceLineEnd}`. If MCP is unavailable, log "Plan RAG unavailable, skipping" and continue from local spec/findings only.
+- **Unset:** `{rag}` is `obsidian-plan-rag`, the default.
+- **`none`:** plan memory is off. Skip this policy and every plan RAG step below without logging anything.
+- **Any other value:** that server name.
+
+The server must provide the plan memory API documented in the README: `similar_plans` is required; `repo_memory`, `get_plan_context`, `refresh_index` and `index_status` are optional. Its tools appear as `mcp__…{rag}__<tool>`. Read each tool's schema for its argument names, and skip any optional tool the server does not provide. Results cite `filePath`, `sourceLineStart` and `sourceLineEnd`.
+
+- **`{rag}` is connected and has `similar_plans`:** use it as described below.
+- **Default, not connected:** log "Plan RAG unavailable, skipping" and continue.
+- **Set explicitly, but not connected or missing `similar_plans`:** tell the user once: "Plan RAG server `{rag}` (from `SPEC_WORKFLOW_RAG`) is not connected or does not provide `similar_plans`. Connect it, or run `/spec-workflow:setup` to choose another server or `none`." Log it and continue without plan memory. Never use a different server instead.
+
+A failed RAG call never blocks the workflow: log it and continue.
+
+Use it opportunistically after reading the approved spec and findings. Call `refresh_index` or `index_status` when freshness matters, then use `similar_plans` with the spec goal, repo, and domain keywords. For clearly relevant prior plans, call `get_plan_context` to inspect phase structure and acceptance criteria.
+
+Use retrieved context to improve decomposition shape, sequencing, risk handling, and verification ideas. Cite useful returned snippets in `progress.md` or decomposition notes with `{filePath}:{sourceLineStart}-{sourceLineEnd}`. Without plan memory, continue from local spec/findings only.
 
 ---
 

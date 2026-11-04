@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Set up spec-workflow — choose the plan root folder (SPEC_WORKFLOW_ROOT) and the review skill for /spec-workflow:run-qa (SPEC_WORKFLOW_REVIEW_SKILL), save them to Claude settings, check required plugins (planning-with-files, ralph-loop), offer to turn on automatic plugin updates, and report optional MCP servers. Run once after installing, or when another spec-workflow skill reports the root is not configured.
+description: Set up spec-workflow — choose the plan root folder (SPEC_WORKFLOW_ROOT) and the review skill for /spec-workflow:run-qa (SPEC_WORKFLOW_REVIEW_SKILL) and the plan memory server (SPEC_WORKFLOW_RAG), save them to Claude settings, check required plugins (planning-with-files, ralph-loop), offer to turn on automatic plugin updates, and report optional MCP servers. Run once after installing, or when another spec-workflow skill reports the root is not configured.
 argument-hint: "[root-folder-path]"
 user-invocable: true
 allowed-tools: Read Write Edit Bash AskUserQuestion
@@ -106,6 +106,23 @@ Claude Code auto-updates plugins from Anthropic's official marketplaces, but not
 
 Updates apply after a restart (or `/reload-plugins`).
 
+## Step 3d: Plan Memory (RAG) Server
+
+Skip this step when another spec-workflow skill invoked setup only to resolve a missing root.
+
+`spec`, `decompose` and `implement-plan` pull lessons from past plans through an MCP server set by `SPEC_WORKFLOW_RAG`. When unset it uses `obsidian-plan-rag`. Any MCP server works if it provides the plan memory API in the README: a required `similar_plans` tool, plus optional `repo_memory`, `get_plan_context`, `refresh_index` and `index_status`. The value `none` turns plan memory off.
+
+1. Read the current value from `echo "$SPEC_WORKFLOW_RAG"`, then from `env.SPEC_WORKFLOW_RAG` in `SETTINGS`.
+2. Look at this session's tools for MCP servers that provide `similar_plans` (tools named `mcp__…<server>__similar_plans`). Note each server name and which optional tools it has.
+3. Ask with AskUserQuestion: "Which MCP server should spec-workflow use for plan memory?" Options:
+   - the current value, if set (label it "Keep {value}")
+   - each detected compatible server other than the current one (mark the first "(Recommended)" if nothing is set)
+   - `obsidian-plan-rag` (the default), if not already listed
+   - "None" — turn plan memory off
+   - the user can type any other MCP server name
+4. If the chosen server is not connected, or is connected without `similar_plans`, say so: skills will warn and skip plan memory until it is connected. Do not install or configure MCP servers. Point to the README section on plan memory.
+5. If the choice is exactly the default `obsidian-plan-rag`, remove `SPEC_WORKFLOW_RAG` from `SETTINGS` `env` if present (unset means default). For "None" write `"SPEC_WORKFLOW_RAG": "none"`. Otherwise write `"SPEC_WORKFLOW_RAG": "<server>"`. Preserve every other key, same as Step 2.
+
 ## Step 4: Optional MCP Servers
 
 Look at the tools available in this session and report which of these are connected. Do not install anything.
@@ -115,7 +132,7 @@ Look at the tools available in this session and report which of these are connec
 | Atlassian | `--jira`, `--confluence` context in `/spec-workflow:spec` | `getJiraIssue`, `getConfluencePage` |
 | Figma | design values and visual comparison | `get_design_context`, `get_screenshot` |
 | Playwright | implementation screenshots | `browser_navigate`, `browser_take_screenshot` |
-| obsidian-plan-rag | lessons from past plans | `similar_plans`, `repo_memory` |
+| plan memory server (`SPEC_WORKFLOW_RAG`, default obsidian-plan-rag) | lessons from past plans | `similar_plans`, `repo_memory` |
 
 Everything works without them; each skill skips what is missing.
 
@@ -139,7 +156,8 @@ Plan author: {git user.name | $USER (git user.name not set)}
 Plugins:     planning-with-files {✓|missing}, ralph-loop {✓|missing}
 Auto-update: {on | off — update with claude plugin update spec-workflow@phongtlam}
 QA review:   {skill list}  ({default | saved to SETTINGS}) {✓|missing}
-Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, plan RAG {✓|–}, gh {✓|–}
+Plan memory: {server | off}  ({default | saved to SETTINGS}) {✓ connected | not connected}
+Optional:    Atlassian {✓|–}, Figma {✓|–}, Playwright {✓|–}, gh {✓|–}
 
 Next: restart Claude Code so hooks see SPEC_WORKFLOW_ROOT, then run
 /spec-workflow:spec <plan-name> from inside the repo you want to work on.

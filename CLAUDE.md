@@ -43,13 +43,15 @@ These were deliberate decisions. Don't undo them without the owner's say-so.
 
 - **No personal paths.** Nothing may mention `/Users/...` or a specific person's folders. All plan files live under `SPEC_WORKFLOW_ROOT`.
 - **The plan root is required.** Skills never fall back to a default folder, the working directory or the repo. When `SPEC_WORKFLOW_ROOT` is unset, they invoke `Skill("spec-workflow:setup")` and continue with the path it reports. Keep the root-resolution text consistent across skills.
-- **Don't name things after Obsidian.** The root can be any folder. Obsidian is only an example (and `obsidian-plan-rag` is a real MCP server name).
+- **Don't name things after Obsidian.** The root can be any folder. Obsidian is only an example (and `obsidian-plan-rag` is a real MCP server name, the default for `SPEC_WORKFLOW_RAG`).
 - **No global "active plan".** Several plans can run at once. A skill finds its plan by `--plan <name>`, else by matching the current git repo against `repo:` or `workspace:` in the plan frontmatter, and asks when several match. Never reintroduce a pointer file such as `~/.claude/active-plan-path`.
 - **No shared state files.** Anything a run needs to remember (like the `implement-plan` wake-lock PID) goes in that plan's folder, never in `~/.claude` or another global path, or parallel plans overwrite each other.
 - **Config lives in the `env` block of `~/.claude/settings.json`**, never a shell profile (the desktop app and IDE extensions don't read `.zshrc`). Current variables:
   - `SPEC_WORKFLOW_ROOT` — required plan root folder
   - `SPEC_WORKFLOW_REVIEW_SKILL` — review skill(s) for `run-qa`, comma-separated; default `pr-review-toolkit:review-pr`
+  - `SPEC_WORKFLOW_RAG` — MCP server for plan memory; default `obsidian-plan-rag`, `none` to turn off
 - **Namespace every reference** to this plugin's skills and agent: `/spec-workflow:spec`, `Skill("spec-workflow:resume-plan")`, `subagent_type: "spec-workflow:build-agent"`.
+- **Plan memory is an API, not a server.** Skills call the plan memory tools (`similar_plans`, `repo_memory`, `get_plan_context`, `refresh_index`, `index_status`) on the server named by `SPEC_WORKFLOW_RAG`. Keep the Plan RAG Policy text the same in `spec`, `decompose` and `implement-plan`, and keep the API table in the README in step with it.
 - **Never silently substitute.** If a configured skill or plugin is missing, stop and say which one, with the fix.
 - **Ask before changing anything of the user's**: settings, installed plugins, or plan statuses and archives.
 - **Quote `argument-hint`** in frontmatter. A value that starts with `[` is otherwise read as a YAML list and breaks the whole frontmatter.
@@ -68,7 +70,8 @@ Keep this table, setup Step 3/3b and the README in sync. `dev/check.sh` verifies
 | Explore subagent | `spec` | built into Claude Code | — |
 | `git` | all plan skills, hooks | CLI, required | — |
 | `gh` | `audit-plans` | CLI, optional (falls back to `git log`) | — |
-| Atlassian, Figma, Playwright, obsidian-plan-rag | `spec`, `implement-plan` | MCP servers, optional | — |
+| Atlassian, Figma, Playwright | `spec`, `implement-plan` | MCP servers, optional | — |
+| Plan memory server (`SPEC_WORKFLOW_RAG`, default obsidian-plan-rag) | `spec`, `decompose`, `implement-plan` | MCP server, optional; must provide the plan memory API in the README | — |
 
 A fresh Claude config has no `claude-plugins-official` marketplace, and installing from it fails with a misleading "not found in marketplace" error. Always add the marketplace first.
 
